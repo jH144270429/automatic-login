@@ -1,14 +1,12 @@
 from selenium import webdriver
 import time
-from PIL import Image, ImageDraw
-from pyocr import tesseract
+from PIL import Image
 import pytesseract
 import re
 import csv
 
-# 去哪网url
+#学校的URL
 url = "http://xkxt.ecjtu.jx.cn/"
-
 
 def start_project():
 
@@ -105,7 +103,8 @@ def pIx(data):
         return False
         print(程序终止)
     return data
-#替换代码
+
+#识别替换代码库
 def replace_text(text):
     sum = 0
     text = text.strip()#去除text首尾空格
@@ -148,8 +147,7 @@ def replace_text(text):
            '%': '4',
            'g': '3',
            }
-
-    #判断是否有数字，有数字直接返回第一个数字，不需要字符替换
+    #判断是否有四位数字
     #print (text)
     if len(text) >= 1:
         pattern = re.compile(u'\d{1}')
@@ -164,18 +162,17 @@ def replace_text(text):
                 sum = result
 
     return sum
-# 测试代码
 
-
+#自动填入对应账号密码
 def Enter_project(code):
     # 输入账号密码，点击登录按钮
     input_1 = driver.find_element_by_xpath('//*[@id="inputUser"]')
     input_1.clear()
-    input_1.send_keys('2017211001001414')
+    input_1.send_keys(username)
     # 密码
     input_2 = driver.find_element_by_xpath('//*[@id="inputPassword"]')
     input_2.clear()
-    input_2.send_keys('******')
+    input_2.send_keys(password)
     # 验证码
     input_3 = driver.find_element_by_xpath('//*[@id="inputCode"]')
     input_3.clear()
@@ -189,10 +186,9 @@ def Enter_project(code):
         print("请求失败，再次请求！")
         main()
     else:
-        print("登录成功！")
         _class()
 
-
+#判断是否登录成功，并且爬取课表
 def _class():
     classmethod0 = []
     classmethod1 = []
@@ -202,8 +198,13 @@ def _class():
     classmethod5 = []
     classmethod6 = []
     classmethod7 = []
-
-    driver.find_element_by_xpath('//*[@id="nav"]/ul/li[5]/a').click()
+    try:
+        driver.find_element_by_xpath('//*[@id="nav"]/ul/li[5]/a').click()
+    except:
+        print("您输入的账号或者密码错误，请重新启动程序！")
+        destory()
+    else:
+        print("登录成功！")
     date0 = driver.find_element_by_xpath('// *[ @ id = "changeterm"] / div / label').text
     date = driver.find_element_by_xpath('//*[@id="term"]/option[1]').text
     #print(date)
@@ -273,6 +274,10 @@ def _class():
         w.writerow(classmethod6)
         w.writerow(classmethod7)
 
+#三秒之后销毁窗口函数
+def destory():
+    time.sleep(3)
+    driver.quit()
 
 def main():
     # 模拟登陆页面
@@ -295,12 +300,14 @@ def main():
         print("验证码识别错误！")
         sum = 1111
     result.clear()
-    print("处理成功！")
+    print("验证码处理完毕！")
     code = sum
-    print(code)
+    print("处理之后的验证码：",code)
     Enter_project(code)
 
 if __name__ == "__main__":
+    username = input("请输入你的账号：")
+    password = input("请输入你的密码：")
     driver = webdriver.Chrome(executable_path=r'D:\py\chromedriver.exe')  # 使用selenium代理打开页面
     driver.maximize_window()
     driver.get(url)
